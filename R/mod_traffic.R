@@ -19,7 +19,8 @@ mod_traffic_srv <- function(id) {
         leaflet() %>%
           addProviderTiles(providers$Stamen.TonerLite,
                            options = providerTileOptions(noWrap = TRUE)
-          )
+          ) %>%
+          leaflet::addPolylines(shps, lat = ~.[,2], lng = ~.[,1])
       })
       
     }
