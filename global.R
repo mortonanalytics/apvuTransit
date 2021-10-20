@@ -8,4 +8,4 @@ library(rgdal)
 library(leaflet)
 
 #### map assets ####
-shps <- readOGR("shp/2019SCRRALines.shp")
+shps <- readOGR("shp/2019SCRRALines.shp", layer = "2019SCRRALines", GDAL1_integer64_policy = TRUE)
