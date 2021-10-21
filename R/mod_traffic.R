@@ -16,11 +16,11 @@ mod_traffic_srv <- function(id) {
     function(input, output, session) {
       
       output$traffic <- renderLeaflet({
-        leaflet() %>%
+        leaflet(shps) %>%
           addProviderTiles(providers$Stamen.TonerLite,
                            options = providerTileOptions(noWrap = TRUE)
-          ) %>%
-          leaflet::addPolylines(shps, lat = ~.[,2], lng = ~.[,1])
+          ) %>% 
+          addPolylines(color = c("blue", "orange", "purple", "green", "red", "brown", "yellow"))
       })
       
     }
