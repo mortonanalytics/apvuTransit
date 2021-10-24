@@ -1,0 +1,13 @@
+name: apvuTransit
+title: apvuTransit
+username:
+account: alphavu
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 4928950
+bundleId: 5164110
+url: https://alphavu.shinyapps.io/apvuTransit/
+when: 1634850492.55779
+lastSyncTime: 1634850492.55779
+asMultiple: FALSE
+asStatic: FALSE

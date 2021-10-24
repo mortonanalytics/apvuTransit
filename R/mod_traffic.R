@@ -5,7 +5,7 @@ mod_traffic_ui <- function(id){
        column(
          2
          ,dropdown(
-           mod_traffic_uc_ui(ns("uc"))
+           mod_traffic_uc_ui(ns("uc"), 3)
          )
        )
       ,column(
@@ -21,7 +21,10 @@ mod_traffic_srv <- function(id) {
     id,
     function(input, output, session) {
       
+      predictions <- mod_traffic_uc_srv("uc", 3)
+      
       output$traffic <- renderLeaflet({
+        
         leaflet(shps) %>%
           addProviderTiles(providers$Stamen.TonerLite,
                            options = providerTileOptions(noWrap = TRUE)

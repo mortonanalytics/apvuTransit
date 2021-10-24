@@ -23,7 +23,7 @@ crswlk <- c("Antelope Valley" = "Los Angeles"
             ,"Orange County" = "Orange"
             ,"Riverside" = "Riverside"
             ,"San Bernardino" = "San Bernardino"
-            ,"Ventura County" = "Ventura"
+            #,"Ventura County" = "Ventura"
             ,"91/Perris Valley" = "Riverside")
 
 df_final <- map_df(crswlk,function(d){
@@ -46,7 +46,7 @@ var_choices <- c(
   ,"Cases" = "cases"
 )
 
-lag_choices <- c("None" = 0, "One Week" = 1, "Two Weeks" = 2)
+lag_choices <- c("None" = 1, "One Week" = 2, "Two Weeks" = 3)
 
 #### fit linear model ####
 ## (step regression didn't produce reasonable estimates - see intercept in model e.g.)

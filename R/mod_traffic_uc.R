@@ -1,18 +1,97 @@
-mod_traffic_uc_ui <- function(id){
+mod_traffic_uc_ui <- function(id, controls){
   ns <- NS(id)
   
   tagList(
-     selectInput(ns("var_choice"), "Pick an Input", choices = var_choices)
-    ,selectInput(ns("lag_choice"), "Lagged?", choices = lag_choices)
+    actionBttn(ns("update_model"), "Update Map!")
+    ,hlp_traffic_uc_inputs(1:controls, ns)
   )
   
 }
 
-mod_traffic_uc_srv <- function(id) {
+mod_traffic_uc_srv <- function(id, controls) {
   moduleServer(
     id,
     function(input, output, session) {
       
+      lapply(1:controls, function(i){
+        observeEvent({
+          input[[paste0("var_choice_", i, collapse = "")]]
+        }, {
+          
+          current_selections <- unique(sapply(1:controls, FUN= function(d){ input[[paste0("var_choice_", d, collapse = "")]]  }))
+          available_selections <- var_choices[var_choices != current_selections]
+          
+          ## TODO: loop through available inputs in descending order and update with whatever is still available
+          updateSelectInput(
+            session
+            ,paste0("var_choice_", i+1, collapse = "")
+            ,choices = available_selections
+          )
+        })
+      })
+      
+      lapply(1:controls, function(i){
+        observeEvent({
+          input[[paste0("var_choice_", i, collapse = "")]]
+          input[[paste0("lag_choice_", i, collapse = "")]]
+        }, {
+          
+          var_name <- switch(
+            as.character(input[[paste0("lag_choice_", i, collapse = "")]])
+            , "1" = input[[paste0("var_choice_", i, collapse = "")]]
+            , "2" = paste0(input[[paste0("var_choice_", i, collapse = "")]], "_l7", collapse = "")
+            , "3" = paste0(input[[paste0("var_choice_", i, collapse = "")]], "_l14", collapse = "")
+          )
+          
+          s_values <- df_rides[[var_name]]
+          
+          updateSliderInput(
+            session = session
+            , paste0("slider_", i, collapse = "")
+            , min = min(s_values, na.rm = T)
+            , max = max(s_values, na.rm = T)
+            , value = mean(s_values, na.rm = T))
+        })
+      })
+      
+      predictions <- reactiveValues(pred = NULL)
+      
+      observeEvent(input$update_model,{
+        
+        var_names <- lapply(1:controls, function(i){
+          var_name <- switch(
+            as.character(input[[paste0("lag_choice_", i, collapse = "")]])
+            , "1" = input[[paste0("var_choice_", i, collapse = "")]]
+            , "2" = paste0(input[[paste0("var_choice_", i, collapse = "")]], "_l7", collapse = "")
+            , "3" = paste0(input[[paste0("var_choice_", i, collapse = "")]], "_l14", collapse = "")
+          )
+        })
+        
+        
+        row_to_use <- df_rides %>% 
+          select(-date, -rides_inbound, -county) %>%
+          summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
+        
+        walk(1:controls, function(i){
+          row_to_use[[ var_names[[i]] ]] <- input[[paste0("slider_", i, collapse = "")]]
+        })
+        
+        predicted_cases <- map_df(crswlk, function(d){
+          temp <- row_to_use %>%
+            mutate(county = d) %>%
+            mutate(rides_inbound = predict(fit, .))
+          
+          return(temp)
+        })
+        
+        predictions$pred <- predicted_cases
+        message(str(predictions$pred))
+        
+      })
+      
+      return(list(
+        predictions = predictions
+      ))
     }
   )
 }
