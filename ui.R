@@ -1,7 +1,7 @@
 shinyUI(
     navbarPage(
-        theme = bs_theme(version = 4, bootswatch = "lux")
-        ,collapsible = TRUE
+        #theme = bs_theme(version = 4, bootswatch = "lux")
+        collapsible = TRUE
         ,title = "Guess My Traffic"
         ,windowTitle = "AlphaVu | Ridership"
         ,tabPanel(
@@ -10,6 +10,7 @@ shinyUI(
             )
         ,tabPanel(
             "Ridership Analysis"
+            , mod_analysis_ui("analysis")
             )
     )
 )

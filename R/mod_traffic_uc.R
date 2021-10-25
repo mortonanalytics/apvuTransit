@@ -2,7 +2,7 @@ mod_traffic_uc_ui <- function(id, controls){
   ns <- NS(id)
   
   tagList(
-    actionBttn(ns("update_model"), "Update Map!")
+    actionButton(ns("update_model"), "Update Map!")
     ,hlp_traffic_uc_inputs(1:controls, ns)
   )
   
@@ -18,15 +18,25 @@ mod_traffic_uc_srv <- function(id, controls) {
           input[[paste0("var_choice_", i, collapse = "")]]
         }, {
           
-          current_selections <- unique(sapply(1:controls, FUN= function(d){ input[[paste0("var_choice_", d, collapse = "")]]  }))
-          available_selections <- var_choices[var_choices != current_selections]
+          current_selection <- input[[paste0("var_choice_", i, collapse = "")]]
+          available_selections <- var_choices[var_choices != current_selection]
           
-          ## TODO: loop through available inputs in descending order and update with whatever is still available
-          updateSelectInput(
-            session
-            ,paste0("var_choice_", i+1, collapse = "")
-            ,choices = available_selections
-          )
+          controls_to_update <- c(1:controls)
+          controls_to_update <- controls_to_update[controls_to_update != i]
+          
+          walk(controls_to_update,function(e){
+            
+            if(input[[paste0("var_choice_", e, collapse = "")]] == current_selection){
+              updateSelectInput(
+                session
+                ,paste0("var_choice_", e, collapse = "")
+                ,choices = available_selections
+              )
+            }
+            
+          })
+          
+          
         })
       })
       
@@ -72,25 +82,27 @@ mod_traffic_uc_srv <- function(id, controls) {
           select(-date, -rides_inbound, -county) %>%
           summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
         
-        walk(1:controls, function(i){
+        for(i in 1:controls){
           row_to_use[[ var_names[[i]] ]] <- input[[paste0("slider_", i, collapse = "")]]
-        })
+        }
         
         predicted_cases <- map_df(crswlk, function(d){
           temp <- row_to_use %>%
             mutate(county = d) %>%
-            mutate(rides_inbound = predict(fit, .))
+            mutate(rides_inbound = predict(fit, .)) %>%
+            select(county, rides_inbound)
           
           return(temp)
         })
         
         predictions$pred <- predicted_cases
-        message(str(predictions$pred))
         
       })
       
       return(list(
-        predictions = predictions
+        pred = reactive({
+          predictions$pred
+          })
       ))
     }
   )

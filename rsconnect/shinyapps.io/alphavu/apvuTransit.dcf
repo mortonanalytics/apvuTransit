@@ -5,9 +5,9 @@ account: alphavu
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4928950
-bundleId: 5172454
+bundleId: 5175738
 url: https://alphavu.shinyapps.io/apvuTransit/
-when: 1635108174.40692
-lastSyncTime: 1635108174.40692
+when: 1635186648.90451
+lastSyncTime: 1635186648.90451
 asMultiple: FALSE
 asStatic: FALSE

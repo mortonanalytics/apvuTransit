@@ -1,15 +1,20 @@
 #### app runtime and UI ####
 library(shiny)
-library(shinyWidgets)
 library(bslib)
 
 #### map ####
 library(rgdal)
 library(leaflet)
 
+#### chart ####
+library(ggplot2)
+
 #### data processing ####
 library(dplyr)
 library(purrr)
+
+#### colors ####
+library(viridis)
 
 #### map assets ####
 shps <- readOGR("shp/2019SCRRALines.shp", layer = "2019SCRRALines", GDAL1_integer64_policy = TRUE)
@@ -25,6 +30,13 @@ crswlk <- c("Antelope Valley" = "Los Angeles"
             ,"San Bernardino" = "San Bernardino"
             #,"Ventura County" = "Ventura"
             ,"91/Perris Valley" = "Riverside")
+
+df_crswlk <- data.frame(
+  route = names(crswlk)
+  ,county = crswlk
+  ,row.names = 1:6
+  ,stringsAsFactors = FALSE
+)
 
 df_final <- map_df(crswlk,function(d){
   final <- df_rides %>%
