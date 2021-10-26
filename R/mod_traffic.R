@@ -26,18 +26,51 @@ mod_traffic_srv <- function(id) {
       
       predictions <- mod_traffic_uc_srv("uc", 3)
       
-      output$traffic <- renderLeaflet({
+      initial_predictions <- reactive({
         
-        leaflet(shps) %>%
+        row_to_use <- df_rides %>% 
+          select(-date, -rides_inbound, -county) %>%
+          summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
+        
+        predicted_cases <- map_df(crswlk, function(d){
+          temp <- row_to_use %>%
+            mutate(county = d) %>%
+            mutate(rides_inbound = predict(fit, .)) %>%
+            select(county, rides_inbound)
+          
+          return(temp)
+        }) %>%
+          mutate(rides_inbound = case_when(
+            rides_inbound > 1600 ~ 1600
+            ,rides_inbound <= 1600  ~ rides_inbound 
+          ))
+        
+        new_data <- shps@data %>%
+          inner_join(df_crswlk, by = c("Route" = "route")) %>%
+          inner_join(predicted_cases, by = "county") %>%
+          distinct(.keep_all = TRUE) %>%
+          filter(complete.cases(.)) 
+        
+        new_shape <- shps
+        new_shape@data <- new_data
+        return(new_shape)
+      })
+      
+      output$traffic <- renderLeaflet({
+        req(initial_predictions())
+        
+        leaflet(initial_predictions()) %>%
           addProviderTiles(providers$Stamen.TonerLite,
                            options = providerTileOptions(noWrap = TRUE)
           ) %>% 
-          addPolylines(color = c("blue", "orange", "purple", "green", "red", "brown", "yellow")
-                       ,opacity = 1
-                       ,popup = ~Route
-                       ,highlightOptions = highlightOptions(weight = 8,
-                                                            bringToFront = TRUE)
-                       )
+          addPolylines(
+            color = ~pal(rides_inbound)
+            ,opacity = 1
+            ,popup = ~Route
+            ,highlightOptions = highlightOptions(weight = 8,
+                                                 bringToFront = TRUE)
+          ) %>%
+         app_legend()
       })
       
       observeEvent(predictions$pred(),{
@@ -53,11 +86,6 @@ mod_traffic_srv <- function(id) {
           new_shape <- shps
           new_shape@data <- new_data
           
-          pal <- colorNumeric(
-            palette = "viridis",
-            domain = new_data$rides_inbound
-          )
-          
           proxy <- leaflet::leafletProxy("traffic", data = new_shape)
           
           proxy %>%
@@ -69,11 +97,7 @@ mod_traffic_srv <- function(id) {
               ,popup = ~Route
               ,highlightOptions = highlightOptions(weight = 8,
                                                    bringToFront = TRUE)
-            ) %>%
-            addLegend("topright", pal = pal, values = ~rides_inbound,
-                      title = "Inbound Rides",
-                      opacity = 1, layerId = "legend"
-            )
+            ) 
         }
         
         
