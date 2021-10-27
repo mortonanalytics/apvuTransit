@@ -2,12 +2,14 @@ shinyUI(
     navbarPage(
         #theme = bs_theme(version = 4, bootswatch = "lux")
         collapsible = TRUE
-        ,title = "Rebuild Ridership"
+        ,title = tagList("Rebuild Ridership",actionLink("sidebar_button","",icon = icon("bars")))
         ,windowTitle = "AlphaVu | Ridership"
         ,tabPanel(
             "Metrolink Rail Lines"
+            ,includeCSS("www/style.css")
+            ,useShinyjs()
             ,mod_traffic_ui("traffic")
-            ,tags$head(tags$link(href="style.css", rel="stylesheet"))
+            
             )
         ,tabPanel(
             "Ridership Analysis"

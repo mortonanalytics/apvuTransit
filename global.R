@@ -1,6 +1,7 @@
 #### app runtime and UI ####
 library(shiny)
 library(bslib)
+library(shinyjs)
 
 #### map ####
 library(rgdal)
@@ -24,17 +25,18 @@ df_rides <- read.csv("data/AV_Dashboard_Lags_Rounded_Logged.csv", stringsAsFacto
 
 ## repeated orange county gets duplicated when mapped to route
 crswlk <- c("Antelope Valley" = "Los Angeles"
+            ,"LAUS" = "LAUS"
             ,"Inland Empire-Orange County" = "Orange"
             ,"Orange County" = "Orange"
             ,"Riverside" = "Riverside"
             ,"San Bernardino" = "San Bernardino"
-            #,"Ventura County" = "Ventura"
+            ,"Ventura County" = "Ventura"
             ,"91/Perris Valley" = "Riverside")
 
 df_crswlk <- data.frame(
   route = names(crswlk)
   ,county = crswlk
-  ,row.names = 1:6
+  ,row.names = 1:length(crswlk)
   ,stringsAsFactors = FALSE
 )
 
@@ -61,7 +63,7 @@ var_choices <- c(
 lag_choices <- c("None" = 1, "One Week" = 2, "Two Weeks" = 3)
 
 #### color palette ####
-color_domain <- df_rides$rides_inbound[df_rides$rides_inbound < 1600]
+color_domain <- c(0,1600)
 pal <- colorNumeric(
   palette = "viridis",
   domain = color_domain
@@ -90,5 +92,6 @@ df_model <- df_rides %>%
 options(set.seed = 12345)
 
 fit <- lm(rides_inbound ~ ., data = df_model)
-
-model_coeffients <- coef(fit)
+error_terms <- fit$residuals
+error_distribution <- MASS::fitdistr(error_terms, , densfun="normal")
+error_estimates <- rnorm(250, mean = error_distribution$estimate, sd = error_distribution$sd)

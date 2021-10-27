@@ -2,16 +2,26 @@ mod_traffic_ui <- function(id){
   ns <- NS(id)
   tagList(
     sidebarLayout(
-      sidebarPanel(
-        mod_traffic_uc_ui(ns("uc"), 3)
+      tags$div(class="sidebar",
+        sidebarPanel(
+          mod_traffic_uc_ui(ns("uc"))
+        )
       )
       ,mainPanel(
         fluidRow(
           column(
             12
-            ,h3("Map of Routes")
-            ,p("Click or Tap the line to see model output")
-            ,leafletOutput(ns("traffic"), width = "100%", height = "700px")
+            ,tags$div(
+              class = "card-av"
+              ,tags$div(
+                class="card-container"
+                ,h3("Map of Routes")
+                ,p("Click or Tap the line to see model output")
+              )
+              
+              ,leafletOutput(ns("traffic"), width = "100%", height = "700px")
+            )
+            
             )
           )
         )
@@ -33,17 +43,14 @@ mod_traffic_srv <- function(id) {
           summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
         
         predicted_cases <- map_df(crswlk, function(d){
+          if(d %in% c("LAUS", "Ventura")) return(NULL)
           temp <- row_to_use %>%
             mutate(county = d) %>%
             mutate(rides_inbound = predict(fit, .)) %>%
             select(county, rides_inbound)
           
           return(temp)
-        }) %>%
-          mutate(rides_inbound = case_when(
-            rides_inbound > 1600 ~ 1600
-            ,rides_inbound <= 1600  ~ rides_inbound 
-          ))
+        }) 
         
         new_data <- shps@data %>%
           inner_join(df_crswlk, by = c("Route" = "route")) %>%
@@ -65,9 +72,9 @@ mod_traffic_srv <- function(id) {
           ) %>% 
           addPolylines(
             color = ~pal(rides_inbound)
-            ,opacity = 1
+            ,opacity = 0.8
             ,popup = ~Route
-            ,highlightOptions = highlightOptions(weight = 8,
+            ,highlightOptions = highlightOptions(weight = 10,
                                                  bringToFront = TRUE)
           ) %>%
          app_legend()
@@ -93,9 +100,9 @@ mod_traffic_srv <- function(id) {
             leaflet::removeControl('legend ') %>%
             leaflet::addPolylines(
               color = ~pal(rides_inbound)
-              ,opacity = 1
+              ,opacity = 0.8
               ,popup = ~Route
-              ,highlightOptions = highlightOptions(weight = 8,
+              ,highlightOptions = highlightOptions(weight = 10,
                                                    bringToFront = TRUE)
             ) 
         }

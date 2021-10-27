@@ -8,7 +8,9 @@ hlp_traffic_uc_inputs <- function(v_vars, ns){
           ,names(v_vars[v_vars == d])
           ,min = min(s_values, na.rm = T)
           ,max = max(s_values, na.rm = T)
-          ,value = mean(s_values, na.rm = T))
+          ,value = mean(s_values, na.rm = T)
+          ,width = "100%"
+          )
         )
     })  
   )

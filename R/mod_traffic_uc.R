@@ -51,17 +51,16 @@ mod_traffic_uc_srv <- function(id, controls) {
         }
         
         predicted_cases <- map_df(crswlk, function(d){
+          if(d %in% c("LAUS", "Ventura")) return(NULL)
           temp <- row_to_use %>%
             mutate(county = d) %>%
-            mutate(rides_inbound = predict(fit, .)) %>%
+            mutate(rides_inbound = predict(fit, .) ) %>%
             select(county, rides_inbound)
           
           return(temp)
-        }) %>%
-          mutate(rides_inbound = case_when(
-            rides_inbound > 1600 ~ 1600
-            ,rides_inbound <= 1600  ~ rides_inbound 
-          ))
+        }) 
+        
+        message(paste0(predicted_cases$rides_inbound, collapse = ","))
         
         predictions$pred <- predicted_cases
         
