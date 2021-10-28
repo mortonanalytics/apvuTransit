@@ -9,6 +9,7 @@ library(leaflet)
 
 #### chart ####
 library(ggplot2)
+library(scales)
 
 #### data processing ####
 library(dplyr)
@@ -48,16 +49,16 @@ df_final <- map_df(crswlk,function(d){
 })
 
 var_choices <- c(
-  "Ad Spend" = "spend_log"
-  ,"User Clicks" = "clicks_log"
-  ,"Campaign Reach" = "reach_log"
+  "Advertising Expenditure" = "spend_log"
+  ,"Website Clicks" = "clicks_log"
+  ,"Advertising Audience Size" = "reach_log"
   ,"Gas Price" = "gas_i"
   ,"Unemployment Rate" = "unem_i"
   ,"Precipitation" = "precip"
   ,"Daily High Temperature" = "tempMax"
   ,"Daily Low Temperature" = "tempMin"
-  ,"Percent Pos Sent" = "pctPosSent"
-  ,"Cases" = "cases_log"
+  ,"% Positive Customer Satisfaction" = "pctPosSent"
+  ,"COVID Cases" = "cases_log"
 )
 
 lag_choices <- c("None" = 1, "One Week" = 2, "Two Weeks" = 3)

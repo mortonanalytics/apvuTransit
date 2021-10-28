@@ -11,6 +11,7 @@ mod_traffic_ui <- function(id){
         fluidRow(
           column(
             12
+            ,id = "map-div"
             ,tags$div(
               class = "card-av"
               ,tags$div(
@@ -18,7 +19,6 @@ mod_traffic_ui <- function(id){
                 ,h3("Map of Routes")
                 ,p("Click or Tap the line to see model output")
               )
-              
               ,leafletOutput(ns("traffic"), width = "100%", height = "700px")
             )
             

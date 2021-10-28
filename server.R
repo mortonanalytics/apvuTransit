@@ -15,5 +15,8 @@ shinyServer(function(input, output, session) {
             ',js_maintab,'.css("width","100%");
           }
           '))
-  })
+    
+    runjs("window.dispatchEvent(new Event('resize')); ")
+    
+   })
 })

@@ -34,7 +34,7 @@ mod_analysis_srv <- function(id) {
           )
         }
         
-        ggplot(df_rides, aes_string(x = var_name, y = "rides_inbound", color = "county")) +
+        p <- ggplot(df_rides, aes_string(x = var_name, y = "rides_inbound", color = "county")) +
           geom_point() + 
           geom_smooth(method = "lm", aes(color = county)) + 
           theme(
@@ -43,7 +43,20 @@ mod_analysis_srv <- function(id) {
             ,legend.text = element_text(size = 12, face = "bold")
             ) + 
           guides(colour = guide_legend(override.aes = list(size=5)))
+        
+        if(grepl("log", var_name)) {
+          message("transform label")
           
+          log_scale_linear_format <- function(){
+            function(x){
+              format(exp(x), digits = 0)
+            }
+          }
+          
+         p <- p +
+            scale_x_continuous(labels=log_scale_linear_format()) 
+        }
+          p
       })
       
     }
