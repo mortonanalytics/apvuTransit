@@ -9,11 +9,13 @@ library(leaflet)
 
 #### chart ####
 library(ggplot2)
+library(ggthemes)
 library(scales)
 
 #### data processing ####
 library(dplyr)
 library(purrr)
+library(glue)
 
 #### colors ####
 library(viridis)
@@ -64,10 +66,11 @@ var_choices <- c(
 lag_choices <- c("None" = 1, "One Week" = 2, "Two Weeks" = 3)
 
 #### color palette ####
-color_domain <- c(0,1600)
+color_domain <- c(0.5,-0.5)
 pal <- colorNumeric(
   palette = "viridis",
-  domain = color_domain
+  domain = color_domain,
+  na.color = NA
 )
 
 #### Map legend ####
@@ -77,12 +80,32 @@ app_legend <-  function(map){
     ,position = "topright"
     ,pal = pal
     ,values = color_domain
-    ,title = "Inbound Rides"
+    ,title = "% Difference in Rides"
     ,opacity = 1
+    ,labFormat = labelFormat(
+      suffix = "%",
+      transform = function(x) 100 * x
+    )
     ,layerId = "legend"
   )
   
   return(final)
+}
+
+#### map pop up content ####
+content <- function(d, p, c){
+  
+  rides <- format(round(p), big.mark = ",")
+  
+  diff <- paste(round(100 * c, digits = 1),"%", sep = "")
+  
+  html_text <- glue('
+                    <b>{d}</b>
+                    <p class="popup"> Rides: {rides} </p>
+                    <p> Difference from the Average: {diff} </p>
+                    ')
+  
+  return(html_text)
 }
 
 #### fit linear model ####
@@ -90,9 +113,6 @@ app_legend <-  function(map){
 df_model <- df_rides %>%
   filter(complete.cases(.)) %>%
   select(-date)
-options(set.seed = 12345)
+options(set.seed = 12345, scipen = 999)
 
 fit <- lm(rides_inbound ~ ., data = df_model)
-error_terms <- fit$residuals
-error_distribution <- MASS::fitdistr(error_terms, , densfun="normal")
-error_estimates <- rnorm(250, mean = error_distribution$estimate, sd = error_distribution$sd)

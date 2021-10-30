@@ -2,7 +2,7 @@ mod_traffic_uc_ui <- function(id, controls){
   ns <- NS(id)
   
   tagList(
-    actionButton(ns("update_model"), "Update Map!")
+    actionButton(ns("reset_inputs"), "Reset")
     ,br()
     ,br()
     ,radioButtons(ns("lag_choice"), "Forecast Period", choices = lag_choices, inline = TRUE)
@@ -16,16 +16,37 @@ mod_traffic_uc_srv <- function(id, controls) {
     id,
     function(input, output, session) {
       
-      predictions <- reactiveValues(pred = NULL)
+      observeEvent(input$reset_inputs,{
+        lapply(var_choices, function(d){
+          if(d == "pctPosSent") {
+            s2_values <- round( df_rides[[d]] * 100 )
+            mean_value <- round(mean(s2_values, na.rm = TRUE))
+          } else if(grepl("log",d)){
+            s_values <- round(exp(df_rides[[d]]))
+            mean_value <- round(mean(s_values, na.rm = T), digits = 2)
+          } else{
+            s_values <- df_rides[[d]]
+            mean_value <- round(mean(s_values, na.rm = T), digits = 2)
+          }
       
-      observeEvent(input$update_model,{
+            updateSliderInput(session = session
+              ,inputId = paste0("slider_", d, collapse = "")
+              ,value = mean_value
+            )
+          
+        })  
+        
+        updateRadioButtons(session = session, inputId = "lag_choice", selected = lag_choices[1])
+      })
+      
+      predictions <- reactive({
         
         var_names <- lapply(var_choices, function(i){
-          if(grepl("_log", i)){
+          if(grepl("log", i)){
             split_name <- unlist(strsplit(i, split = "_"))[1]
             var_name <- switch(
               as.character(input[["lag_choice"]])
-              , "1" = split_name
+              , "1" = paste0(split_name,"_log", collapse = "")
               , "2" = paste0(split_name, "_7l_log", collapse = "")
               , "3" = paste0(split_name, "_14l_log", collapse = "")
             )
@@ -47,28 +68,35 @@ mod_traffic_uc_srv <- function(id, controls) {
           summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
         
         for(i in 1:length(var_choices)){
-          row_to_use[[ var_names[[i]] ]] <- input[[paste0("slider_", var_choices[i], collapse = "")]]
+          
+          this <-  input[[paste0("slider_", var_choices[i], collapse = "")]]
+          
+          if(var_choices[i] == "pctPosSent") {
+            this <- this / 100
+          } else if(grepl("log", var_choices[i])){
+            this <- log(this)
+          }
+          row_to_use[[ var_names[[i]] ]] <- this
         }
         
-        predicted_cases <- map_df(crswlk, function(d){
-          if(d %in% c("LAUS", "Ventura")) return(NULL)
+        predicted_cases <- map_df(shps@data$Route, function(d){
+          if(d %in% c("LAUS", "Ventura County")) return(data.frame(county = d, Route = d))
           temp <- row_to_use %>%
-            mutate(county = d) %>%
+            mutate(county = crswlk[names(crswlk) == d]) %>%
             mutate(rides_inbound = predict(fit, .) ) %>%
-            select(county, rides_inbound)
+            select(county, rides_inbound) %>%
+            mutate(Route = d)
           
           return(temp)
         }) 
         
-        message(paste0(predicted_cases$rides_inbound, collapse = ","))
-        
-        predictions$pred <- predicted_cases
+        return(predicted_cases)
         
       })
       
       return(list(
         pred = reactive({
-          predictions$pred
+          predictions()
           })
       ))
     }
