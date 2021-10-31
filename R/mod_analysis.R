@@ -53,7 +53,8 @@ mod_analysis_srv <- function(id) {
             legend.title=element_blank()
             ,legend.position="top"
             ,legend.text = element_text(size = 12, face = "bold")
-            ) 
+            ) + 
+          guides(colour = guide_legend(nrow = 2))
         
         if(grepl("log", var_name)) {
           log_scale_linear_format <- function(){
