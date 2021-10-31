@@ -4,12 +4,12 @@ hlp_traffic_uc_inputs <- function(v_vars, ns){
       if(d == "pctPosSent") {
         s_values <- 0:100
         s2_values <- round( df_rides[[d]] * 100 )
-        mean_value <- mean(s2_values, na.rm = TRUE)
+        mean_value <- round(mean(s2_values, na.rm = TRUE))
         min_value <- 0
         max_value <- 100
       } else if(grepl("log",d)){
         s_values <- exp(df_rides[[d]])
-        mean_value <- round(mean(s_values, na.rm = T))
+        mean_value <- round(mean(s_values, na.rm = T), digits=2)
         min_value <- max(round(mean_value - ( sd(s_values, na.rm = T)), digits = 2), round(min(s_values, na.rm = T), digits = 2))
         max_value <- min(round(mean_value + ( sd(s_values, na.rm = T)), digits = 2), round(max(s_values, na.rm = T), digits = 2))
         

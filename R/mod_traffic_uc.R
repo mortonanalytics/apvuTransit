@@ -22,7 +22,7 @@ mod_traffic_uc_srv <- function(id, controls) {
             s2_values <- round( df_rides[[d]] * 100 )
             mean_value <- round(mean(s2_values, na.rm = TRUE))
           } else if(grepl("log",d)){
-            s_values <- round(exp(df_rides[[d]]))
+            s_values <- exp(df_rides[[d]])
             mean_value <- round(mean(s_values, na.rm = T), digits = 2)
           } else{
             s_values <- df_rides[[d]]

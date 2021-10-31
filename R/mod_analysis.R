@@ -47,7 +47,7 @@ mod_analysis_srv <- function(id) {
           geom_smooth(method = "lm", aes(color = county),formula = 'y ~ x') + 
           ylab("Rides") +
           xlab(names(var_choices[var_choices == var_name]))+
-          scale_y_continuous(labels = function(y){format(y, big.mark = ",")})
+          scale_y_continuous(labels = function(y){format(y, big.mark = ",")}) +
           ggthemes::theme_economist_white()+
           theme(
             legend.title=element_blank()

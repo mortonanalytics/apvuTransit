@@ -49,11 +49,55 @@ mod_traffic_srv <- function(id) {
         return(final)
       })
       
-      initial_predictions <- reactive({
+      first_render <- reactive({
+        isolate(invalidateLater(1000, session))
+        
+        final <- Sys.time()
+        message(final)
+        
+        return(final)
+      })
+      
+      initial_predictions <- eventReactive(first_render(),{
+        req(input[[paste0("uc-slider_", var_choices[1], collapse = "")]])
+        
+        var_names <- lapply(var_choices, function(i){
+          if(grepl("log", i)){
+            split_name <- unlist(strsplit(i, split = "_"))[1]
+            var_name <- switch(
+              as.character(input[["uc-lag_choice"]])
+              , "1" = paste0(split_name,"_log", collapse = "")
+              , "2" = paste0(split_name, "_7l_log", collapse = "")
+              , "3" = paste0(split_name, "_14l_log", collapse = "")
+            )
+          } else {
+            var_name <- switch(
+              as.character(input[["uc-lag_choice"]])
+              , "1" = i
+              , "2" = paste0(i, "_l7", collapse = "")
+              , "3" = paste0(i, "_l14", collapse = "")
+            )
+          }
+          
+          return(var_name)
+        })
+        
         
         row_to_use <- df_rides %>% 
           select(-date, -rides_inbound, -county) %>%
           summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
+        
+        for(i in 1:length(var_choices)){
+          
+          this <-  input[[paste0("uc-slider_", var_choices[i], collapse = "")]]
+          
+          if(var_choices[i] == "pctPosSent") {
+            this <- this / 100
+          } else if(grepl("log", var_choices[i])){
+            this <- log(this)
+          }
+          row_to_use[[ var_names[[i]] ]] <- this
+        }
         
         predicted_cases <- map_df(shps@data$Route, function(d){
           if(d %in% c("LAUS", "Ventura County")) return(data.frame(county = d, Route = d))
