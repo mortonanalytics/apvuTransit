@@ -66,7 +66,7 @@ var_choices <- c(
 lag_choices <- c("None" = 1, "One Week" = 2, "Two Weeks" = 3)
 
 #### color palette ####
-color_domain <- c(0.5,-0.5)
+color_domain <- c(0.5,-0.3)
 pal <- colorNumeric(
   palette = "viridis",
   domain = color_domain,
@@ -81,11 +81,12 @@ app_legend <-  function(map){
     ,pal = pal
     ,values = color_domain
     ,title = "% Difference in Rides"
-    ,opacity = 1
+    ,opacity = 0.8
     ,labFormat = labelFormat(
       suffix = "%",
-      transform = function(x) 100 * x
-    )
+      prefix = " ", 
+      transform = function(x)  100 * x
+      )
     ,layerId = "legend"
   )
   
@@ -113,6 +114,6 @@ content <- function(d, p, c){
 df_model <- df_rides %>%
   filter(complete.cases(.)) %>%
   select(-date)
-options(set.seed = 12345, scipen = 999)
+options(set.seed = 12345, scipen = 99)
 
 fit <- lm(rides_inbound ~ ., data = df_model)

@@ -13,7 +13,7 @@ mod_analysis_ui <- function(id){
               ,h3("Training Data")
               ,p("Smoothed lines represeent trend estimates per county")
               )
-            ,plotOutput(ns("analysis"), width = "100%", height = "400px"))
+            ,plotOutput(ns("analysis"), width = "100%"))
     )
         )
       )
@@ -42,12 +42,13 @@ mod_analysis_srv <- function(id) {
           )
         }
         
-        p <- ggplot(df_rides, aes_string(x = var_name, y = "rides_inbound", color = "county")) +
-          geom_point() + 
+        p <- ggplot(df_rides , aes_string(x = var_name, y = "rides_inbound", color = "county")) +
+          geom_point(size = 3) + 
+          scale_color_viridis_d(alpha = 0.8) +
           geom_smooth(method = "lm", aes(color = county),formula = 'y ~ x') + 
           ylab("Rides") +
           xlab(names(var_choices[var_choices == var_name]))+
-          scale_y_continuous(labels = function(y){format(y, big.mark = ",")}) +
+          scale_y_continuous(limits = c(0,2500), labels = function(y){format(y, big.mark = ",")}) +
           ggthemes::theme_economist_white()+
           theme(
             legend.title=element_blank()
@@ -56,15 +57,49 @@ mod_analysis_srv <- function(id) {
             ) + 
           guides(colour = guide_legend(nrow = 2))
         
-        if(grepl("log", var_name)) {
+        if(grepl("clicks|reach|cases", var_name)) {
           log_scale_linear_format <- function(){
             function(x){
               format(exp(x), digits = 0, big.mark = ",")
             }
-          }
+          } 
           
          p <- p +
             scale_x_continuous(labels=log_scale_linear_format()) 
+        } else if(grepl("spend", var_name)){
+          dollar_log_scale_linear_format <- function(){
+            function(x){
+              gsub(" ", "", paste("$", format(exp(x), digits = 0, big.mark = ","), sep=""))
+            }
+          } 
+          
+          p <- p +
+            scale_x_continuous(labels=dollar_log_scale_linear_format()) 
+        }else if(grepl("temp", var_name)){
+          temp_scale_linear_format <- function(){
+            function(x){
+              paste(x,intToUtf8(176), sep = "")
+            }
+          } 
+          p <- p + 
+            scale_x_continuous(labels=temp_scale_linear_format()) 
+        } else if(grepl("pctPosSent|unem", var_name)){
+          percent_scale_linear_format <- function(){
+            function(x){
+              paste(x,"%", sep = "")
+            }
+          } 
+          p <- p + 
+            scale_x_continuous(labels=percent_scale_linear_format()) 
+        } else if(grepl("gas", var_name)){
+          message(var_name)
+          dollar_scale_linear_format <- function(){
+            function(x){
+              paste("$",x, sep = "")
+            }
+          } 
+          p <- p + 
+            scale_x_continuous(labels=dollar_scale_linear_format()) 
         }
           p
       })

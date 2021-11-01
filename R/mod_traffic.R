@@ -22,7 +22,7 @@ mod_traffic_ui <- function(id){
                 ,p("This is a tool that uses artificial intelligence algorithms to predict transit ridership 0-2 weeks in the future using inputs including advertising expenditures, weather, and the number of local COVID cases.")
               )
               ,h4(textOutput(ns("total_rides")))
-              ,leafletOutput(ns("traffic"), width = "100%", height = "400px")
+              ,leafletOutput(ns("traffic"), width = "100%")
             )
             
             )

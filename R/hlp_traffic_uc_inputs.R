@@ -19,17 +19,18 @@ hlp_traffic_uc_inputs <- function(v_vars, ns){
         min_value <- max(round(mean_value - ( sd(s_values, na.rm = T)), digits = 2), round(min(s_values, na.rm = T), digits = 2))
         max_value <- min(round(mean_value + ( sd(s_values, na.rm = T)), digits = 2), round(max(s_values, na.rm = T), digits = 2))
       }
-       
+      
       tagList( 
         sliderInput(
           ns(paste0("slider_", d, collapse = ""))
           ,names(v_vars[v_vars == d])
-          ,min = round(min_value)
-          ,max = max_value
+          ,min = min_value
+          ,max = if(max_value> 1) round(max_value) else max_value
           ,value = mean_value
+          ,ticks = FALSE
           ,round = if(d %in% c("clicks_log", "reach_log", "cases")) TRUE else FALSE
-          ,post = if(d == "pctPosSent") "%" else ""
-          ,pre = if(d == "spend_log") "$" else ""
+          ,post = if(d %in% c("pctPosSent", "unem_i")) "%" else if(grepl("temp", d)) intToUtf8(176) else ""
+          ,pre = if(d %in% c("spend_log", "gas_i")) "$" else ""
           ,width = "100%"
           )
         )

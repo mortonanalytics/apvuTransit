@@ -26,6 +26,14 @@ p.popup{
   font-size: 20px;
 }
 
+#traffic-traffic {
+  height: calc(76vh) !important;
+  
+}
+#analysis-analysis {
+  height: calc(66vh) !important;
+  
+}
 
 body {
   background-color: #f2f2f2;
@@ -63,13 +71,8 @@ body {
   border: 0;
   font-size: 16px;
   user-select: none;
-  -webkit-user-select: none;
-  touch-action: manipulation;
 }
 
-#traffic-uc-reset_inputs:hover {
-  transform: scale(1.05) rotate(-1deg);
-}
 
 .card-av {
   box-shadow: 0 4px 8px 0 rgb(0,0,0);
