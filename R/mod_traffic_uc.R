@@ -80,7 +80,7 @@ mod_traffic_uc_srv <- function(id, controls) {
         }
         
         predicted_cases <- map_df(shps@data$Route, function(d){
-          if(d %in% c("LAUS", "Ventura County")) return(data.frame(county = d, Route = d))
+          if(d %in% c("LAUS")) return(data.frame(county = d, Route = d))
           temp <- row_to_use %>%
             mutate(county = crswlk[names(crswlk) == d]) %>%
             mutate(rides_inbound = predict(fit, .) ) %>%
