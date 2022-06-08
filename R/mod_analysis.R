@@ -4,7 +4,6 @@ mod_analysis_ui <- function(id){
     fluidRow(column(12,
           fluidRow(
             column(3,selectInput( ns( "var_choice" ), "Pick an Input", choices = var_choices))
-            ,column(3, selectInput( ns("lag_choice"), "Forecast Period", choices = lag_choices))
             )
           ,tags$div(
             class = "card-av"

@@ -41,56 +41,36 @@ mod_traffic_srv <- function(id) {
       
       output$total_rides <- renderText({
         req(predictions$pred())
-       
+
         temp <- sum(predictions$pred()$rides_inbound, na.rm = TRUE)
-        
+
         final <- paste0("Total Rides: ", format(round(temp), big.mark = ",") )
-       
+
         return(final)
       })
-      
+
       first_render <- reactive({
         isolate(invalidateLater(1000, session))
-        
+
         final <- Sys.time()
         message(final)
-        
+
         return(final)
       })
-      
+
       initial_predictions <- eventReactive(first_render(),{
         req(input[[paste0("uc-slider_", var_choices[1], collapse = "")]])
-        
-        var_names <- lapply(var_choices, function(i){
-          if(grepl("log", i)){
-            split_name <- unlist(strsplit(i, split = "_"))[1]
-            var_name <- switch(
-              as.character(input[["uc-lag_choice"]])
-              , "1" = paste0(split_name,"_log", collapse = "")
-              , "2" = paste0(split_name, "_7l_log", collapse = "")
-              , "3" = paste0(split_name, "_14l_log", collapse = "")
-            )
-          } else {
-            var_name <- switch(
-              as.character(input[["uc-lag_choice"]])
-              , "1" = i
-              , "2" = paste0(i, "_l7", collapse = "")
-              , "3" = paste0(i, "_l14", collapse = "")
-            )
-          }
-          
-          return(var_name)
-        })
-        
-        
-        row_to_use <- df_rides %>% 
+
+        var_names <- var_choices
+
+        row_to_use <- df_to_use %>%
           select(-date, -rides_inbound, -county) %>%
           summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
-        
+
         for(i in 1:length(var_choices)){
-          
+
           this <-  input[[paste0("uc-slider_", var_choices[i], collapse = "")]]
-          
+
           if(var_choices[i] == "pctPosSent") {
             this <- this / 100
           } else if(grepl("log", var_choices[i])){
@@ -99,6 +79,26 @@ mod_traffic_srv <- function(id) {
           row_to_use[[ var_names[[i]] ]] <- this
         }
         
+        calc_choices <- config %>%
+          filter(variable_use =='calc')
+        
+        for(i in 1:nrow(calc_choices)){
+          calc_to_consider <- calc_choices[i, ]
+          
+          if(grepl("_sq", calc_to_consider$variable_name)){
+            this <-  input[[paste0("uc-slider_", jsonlite::fromJSON(calc_to_consider$preset_parameters), collapse = "")]] ^ 2
+            message(this)
+          } else if(calc_to_consider$preset_method == "default-value") {
+            this <- jsonlite::fromJSON(calc_to_consider$preset_parameters)
+          }
+          
+          row_to_use[[ calc_to_consider$variable_name ]] <- this
+        }
+        
+        message(str(
+          row_to_use
+        ))
+
         predicted_cases <- map_df(shps@data$Route, function(d){
           if(d %in% c("LAUS")) return(data.frame(county = d, Route = d))
           temp <- row_to_use %>%
@@ -106,26 +106,28 @@ mod_traffic_srv <- function(id) {
             mutate(rides_inbound = predict(fit, .) ) %>%
             select(county, rides_inbound) %>%
             mutate(Route = d , diff = 0)
-          
+
           return(temp)
-        }) 
+        })
         
+        message(str(predicted_cases))
+
         new_data <- predicted_cases
-        
+
         new_shape <- shps
         new_shape@data <- new_data
         return(new_shape)
       })
-      
+
       output$traffic <- renderLeaflet({
         req(initial_predictions())
-        
+
         new_data <- initial_predictions()
-        
+
         leaflet(initial_predictions()) %>%
           addProviderTiles(providers$Stamen.TonerLite,
                            options = providerTileOptions(noWrap = TRUE)
-          ) %>% 
+          ) %>%
           addPolylines(
             color = ~pal(diff)
             ,opacity = 0.8
@@ -135,24 +137,28 @@ mod_traffic_srv <- function(id) {
           ) %>%
          app_legend()
       })
-      
+
       observeEvent(predictions$pred(),{
-        
+
         if (nrow(predictions$pred()) > 0 ) {
-          
+
           base_preds <- initial_predictions()@data %>% select(-county)
           
+          message(str(
+            predictions$pred()
+          ))
+
           new_data <- predictions$pred() %>%
             left_join(base_preds, by = "Route") %>%
             mutate(diff = round(rides_inbound.x - rides_inbound.y)/ rides_inbound.y) %>%
             select(county, Route, rides_inbound.x, diff) %>%
             rename(rides_inbound = rides_inbound.x)
-    
+
           new_shape <- shps
           new_shape@data <- new_data
-          
+
           proxy <- leaflet::leafletProxy("traffic", data = new_shape)
-          
+
           proxy %>%
             leaflet::clearShapes() %>%
             leaflet::removeControl('legend ') %>%
@@ -162,11 +168,11 @@ mod_traffic_srv <- function(id) {
               ,popup = ~content(Route, rides_inbound, diff)
               ,highlightOptions = highlightOptions(weight = 10,
                                                    bringToFront = TRUE)
-            ) 
+            )
         }
-        
-        
-        
+
+
+
       })
       
     }

@@ -1,0 +1,84 @@
+---
+title: "Rdiership Model UI Variable Configuration"
+author: "Morton Analytics LLC"
+date: "4/30/2022"
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(DT)
+```
+
+## Overview
+
+This document describes the methodology used to define variables for the Ridership prediction model UI application. The goal of the configuration is to enable a simple, easy to modify method for defining which variables should show up in the User Interface (UI) and the manner in which they should appear to users for interaction. 
+
+This document was produced by `RMarkdown` and is current up to the date above.
+
+## Example Table
+
+Please copy or download this template when you want to define each variable. The table definitions may be found below with descriptions and examples.
+
+```{r}
+df <- data.frame(
+  variable_name = c('spend_log', 'tempMax' , 'pctPosSent', 'weekend_flag')
+  ,variable_desc = c('Advertising Expenditure', 'Daily High Temperature', '% Positive Customer Satisfaction', 'Weekend Indicator')
+  ,variable_use = c('ui', 'ui','calc', 'ui')
+  ,ui_elemenet = c("slider", "slider", NA, 'toggle')
+  ,preset_method = c('quantile', 'default-range', 'default-value', 'default-range')
+  ,preset_parameters = c('[15,85]', '[65,105]', '[75]', '[0,1]')
+)
+
+DT::datatable(
+  df
+  ,rownames = FALSE
+  ,extensions = 'Buttons'
+  ,options = list(
+    dom = 'Bt'
+    ,buttons = c('copy', 'csv', 'excel')
+    )
+  )
+```
+
+## Congifuration Table Definition
+
+The configuration table should reflect the desires of the AlphaVu data scientist to include and modify the linear regression model in both the User Interface (UI) and the underlying scoring in the application. Each row represents a variable in the model. Each column represents an important element describing how the variable should be processed by the application. Columns include the following:
+
+- `variable_name`: the name of the variable as is appears in the column header of the dataset used to fit the model. The name is **case sensistive** so please make sure the spelling is exactly the same.
+
+- `variable_desc`: the description of the variable that **may also be used as the UI label**. If your expectation is that the variable should appear as a UI element, please include the precise verbiage you want to appear on the screen.
+
+- `variable_use`: how the variable should be used. The current valid options are - `ui` and `calc`. `ui` means the variable should appear on the web app. `calc` means the variable should be used for caclulating estimates but not appear on the UI.
+
+- `ui_elemenet`: this element is required if `variable_use = 'ui'` and describes the type of UI element you want the variable to be on the app. Current options expected include: `slider`, `toggle`, and `radio-button`. Please see a complete list of UI widgets [here](https://shiny.rstudio.com/gallery/widget-gallery.html).
+
+- `preset_method`: this item describes the method used to set values for the variable whether it appears on the UI or not. For items that are there for calculation only, please use `default-value` as the preset method ALWAYS (if you need that to change, let's talk). For variables appearing in the UI, the valid choices are listed below.
+  
+  - `default-range`: use this method when you want to define the range yourself. For example, if you want to set precipitation manually to be 0 to some number, you'd pick this method. 
+  
+  - `quantile`: use this method for variables with long-tails, high-volatility in the data, or extreme variation in the values.
+  
+  - `standard-deviation`: use this method for normally distributed, relatively narrow values.
+  
+  - `category`: use this method for categorical data combined with radio buttons.
+
+- `preset_parameters`: this items includes the parameters used for the each present method.
+
+  - `default-range`: `[0,1]` is a example of a default range for a toggle that's eaither on (1) or off (0). Sliders may also have a default range like `[0,100]`. Please use square brackets in the table.
+  
+  - `quantile`: `[25,75]` is an example of quantile ranges you may want. Please use square brackets.
+  
+  - `standard-deviation`: please use 1, 2, or 3 to indicate how many standard deviations you want included - most likely for a slider. Let's keep the square brackets here too: `[1]` = 1 standard deviation from the mean will get displayed.
+  
+  - `category`: I don't think we have any categorical variables in the UI, but an example might be each county or each line as a string in square brackets: `['Orange County', 'Los Angeles County']`
+  
+Please request any additional UI elements or preset methods as a change request. It'll be easier to add UI element types and preset methods going forward after this methodology is implemented, but don't hesitate to request things before it's implemented too.
+
+
+<br>
+
+*~fin~*

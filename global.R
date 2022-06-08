@@ -16,19 +16,34 @@ library(scales)
 library(dplyr)
 library(purrr)
 library(glue)
+library(readr)
 
 #### colors ####
 library(viridis)
+
+source("R/util_prepare_data.R")
+
+#### config table ####
+config <- read_csv("data/config.csv", col_types = "cccccc")
+
+ui_vars <- config %>%
+  filter(variable_use =='ui')
+
+var_choices <- ui_vars$variable_name
+names(var_choices) <- ui_vars$variable_desc
 
 #### map assets ####
 shps <- readOGR("shp/2019SCRRALines.shp", layer = "2019SCRRALines", GDAL1_integer64_policy = TRUE)
 
 #### data assets ###
-df_rides <- read.csv("data/AV_Dashboard_Lags_Rounded_Logged.csv", stringsAsFactors = FALSE)
+df_rides <- read.csv("data/df_rides.csv", stringsAsFactors = FALSE)
+df_agg <- read.csv("data/df_aggregates.csv", stringsAsFactors = FALSE)
+route_names <- read.csv("data/df_route_names.csv", stringsAsFactors = FALSE)
+
+df_to_use <- util_prepare_data(df_rides, df_agg, route_names)
 
 ## repeated orange county gets duplicated when mapped to route
 crswlk <- c("Antelope Valley" = "Los Angeles"
-            ,"LAUS" = "LAUS"
             ,"Inland Empire-Orange County" = "Orange"
             ,"Orange County" = "Orange"
             ,"Riverside" = "Riverside"
@@ -36,37 +51,32 @@ crswlk <- c("Antelope Valley" = "Los Angeles"
             ,"Ventura County" = "Ventura"
             ,"91/Perris Valley" = "Riverside")
 
+crswlk_abbrev <- c("Antelope Valley" = "av"
+            ,"Inland Empire-Orange County" = "ie"
+            ,"Orange County" = "oc"
+            ,"Riverside" = "rv"
+            ,"San Bernardino" = "sb"
+            ,"Ventura County" = "vn"
+            ,"91/Perris Valley" = "la")
+
 df_crswlk <- data.frame(
-  route = names(crswlk)
-  ,county = crswlk
+  route_2 = names(crswlk)
+  ,county_2 = crswlk
+  ,abbrev = crswlk_abbrev
   ,row.names = 1:length(crswlk)
   ,stringsAsFactors = FALSE
 )
 
-df_final <- map_df(crswlk,function(d){
-  final <- df_rides %>%
-    filter(county == d) %>%
-    mutate(route = names(d))
-  return(final)
-})
 
-var_choices <- c(
-  "Advertising Expenditure" = "spend_log"
-  ,"Website Clicks" = "clicks_log"
-  ,"Advertising Audience Size" = "reach_log"
-  ,"Gas Price" = "gas_i"
-  ,"Unemployment Rate" = "unem_i"
-  ,"Precipitation" = "precip"
-  ,"Daily High Temperature" = "tempMax"
-  ,"Daily Low Temperature" = "tempMin"
-  ,"% Positive Customer Satisfaction" = "pctPosSent"
-  ,"COVID Cases" = "cases_log"
-)
-
-lag_choices <- c("None" = 1, "One Week" = 2, "Two Weeks" = 3)
+df_final <- df_to_use %>%
+  left_join( df_crswlk %>% select(-county_2), by = c("route" = "abbrev") ) %>%
+  select(
+    rides_inbound
+    ,any_of(config$variable_name)
+    )
 
 #### color palette ####
-color_domain <- c(0.5,-0.3)
+color_domain <- c(1,-1)
 pal <- colorNumeric(
   palette = "viridis",
   domain = color_domain,
@@ -111,9 +121,9 @@ content <- function(d, p, c){
 
 #### fit linear model ####
 ## (step regression didn't produce reasonable estimates - see intercept in model e.g.)
-df_model <- df_rides %>%
-  filter(complete.cases(.)) %>%
-  select(-date)
+df_model <- df_final %>%
+  filter(complete.cases(.)) 
+
 options(set.seed = 12345, scipen = 99)
 
 fit <- lm(rides_inbound ~ ., data = df_model)

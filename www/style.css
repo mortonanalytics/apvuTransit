@@ -107,6 +107,10 @@ form {
   min-height: 100vh;
 }
 
+.form-group {
+  margin-bottom: 0;
+}
+
 .form-control {
   font-family: system-ui, sans-serif;
   font-size: 2rem;

@@ -1,0 +1,14 @@
+variable_name,variable_desc,variable_use,ui_elemenet,preset_method,preset_parameters
+spend,Advertising Expenditure,ui,slider,quantile,"[5,95]"
+impressions,Paid Impressions,ui,slider,quantile,"[5,95]"
+clicks,Website Clicks,ui,slider,quantile,"[15,85]"
+reach,Advertising Audience Size,ui,slider,quantile,"[5,95]"
+gasprice,Gas Price,ui,slider,default-range,"[2.5,8]"
+unem_i,Unemployment Rate,ui,slider,quantile,"[15,85]"
+TMAX,Daily High Temperature,ui,slider,quantile,"[5,95]"
+PRCP,Precipitation,ui,slider,quantile,"[5,95]"
+pct_Positive,% Positive Customer Satisfaction,calc,,default-value,[0.75]
+eng_sum,Engagement Total,ui,slider,quantile,"[15,85]"
+cases,COVID Cases,ui,slider,quantile,"[5,95]"
+weekend_d,Weekend,calc,,default-value,[0]
+AWND,Wind,calc,,default-value,[8]

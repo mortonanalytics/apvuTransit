@@ -5,10 +5,10 @@ account: alphavu
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 4928950
-bundleId: 5218035
+bundleId: 5678276
 url: https://alphavu.shinyapps.io/apvuTransit/
-when: 1636125775.42955
-lastSyncTime: 1636125775.42955
+when: 1647199092.50224
+lastSyncTime: 1647199092.50224
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: .Rprofile|LICENSE|README.md

@@ -1,0 +1,6 @@
+﻿variable_name,date,cases,operated,AWND,PRCP,TMAX,weekend_d,reach,impressions,spend,clicks,unem_i,gasprice,pct_Positive,eng_sum,l_inbound
+variable_desc,Date,"COVID cases, 7-day moving average",Number of operated trains,Wind,Precipitation,Temperature,Weekend,Paid Reach,Paid Impressions,Outreach Spend,Clicks,Regional Unemployment Rate,Regional Gas Price,Percent Positive Engagements,Sum of Daily Engagements,Log-Rides Inbound
+variable_use,calc,ui,calc,calc,ui,ui,calc,ui,ui,ui,ui,ui,ui,calc,ui,calc
+ui_element,,slider,slider,,slider,slider,,slider,slider,slider,slider,slider,slider,,slider,
+preset_method,,quantile,default-range,,quantile,quantile,,quantile,quantile,quantile,,standard-deviation,standard-deviation,,standard-deviation,
+preset_parameters,,"[0,95]","[20,138]",,"[0,95]","[0,95]",,"[0,95]","[0,95]","[0,95]",,"[-2,2]","[-2,2]",,"[-1.5,1.5]",
