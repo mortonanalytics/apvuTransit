@@ -17,6 +17,7 @@ library(dplyr)
 library(purrr)
 library(glue)
 library(readr)
+library(randomForest)
 
 #### colors ####
 library(viridis)
@@ -24,7 +25,8 @@ library(viridis)
 source("R/util_prepare_data.R")
 
 #### config table ####
-config <- read_csv("data/config.csv", col_types = "cccccc")
+config <- read_csv("data/config.csv", col_types = "cccccc") %>%
+  filter(variable_name != 'weekend_d')
 
 ui_vars <- config %>%
   filter(variable_use =='ui')
@@ -44,7 +46,7 @@ df_to_use <- util_prepare_data(df_rides, df_agg, route_names)
 
 ## repeated orange county gets duplicated when mapped to route
 crswlk <- c("Antelope Valley" = "Los Angeles"
-            ,"Inland Empire-Orange County" = "Orange"
+            ,"Inland Empire-Orange County" = "Inland Empire"
             ,"Orange County" = "Orange"
             ,"Riverside" = "Riverside"
             ,"San Bernardino" = "San Bernardino"
@@ -70,13 +72,15 @@ df_crswlk <- data.frame(
 
 df_final <- df_to_use %>%
   left_join( df_crswlk %>% select(-county_2), by = c("route" = "abbrev") ) %>%
+  filter(weekend_d == 0, as.Date(date, "%Y-%m-%d") > "2021-01-01", rides_inbound > 0) %>%
   select(
     rides_inbound
+    ,county
     ,any_of(config$variable_name)
     )
 
 #### color palette ####
-color_domain <- c(1,-1)
+color_domain <- c(0.65,-0.65)
 pal <- colorNumeric(
   palette = "viridis",
   domain = color_domain,
@@ -126,4 +130,7 @@ df_model <- df_final %>%
 
 options(set.seed = 12345, scipen = 99)
 
-fit <- lm(rides_inbound ~ ., data = df_model)
+models <- df_model %>%
+  split(df_model$county) %>% 
+  map(. %>% select(-county) ) %>%
+  map(~ randomForest(rides_inbound ~ ., data = . ) )

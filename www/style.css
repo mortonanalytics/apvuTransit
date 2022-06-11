@@ -26,8 +26,8 @@ p.popup{
   font-size: 20px;
 }
 
-#traffic-traffic {
-  height: calc(76vh) !important;
+#traffic-traffic, #traffic-traffic_intervals {
+  height: calc(60vh) !important;
   
 }
 #analysis-analysis {

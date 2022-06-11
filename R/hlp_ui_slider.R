@@ -25,9 +25,9 @@ hlp_ui_slider <- function(config_to_use, ns, data){
       ,max = max_value
       ,value = mid_value
       ,ticks = FALSE
-      ,round = if(config_to_use$variable_name %in% c("clicks", "reach", "cases")) TRUE else FALSE
+      ,round = if(config_to_use$variable_name %in% c("clicks", "reach", "cases", "eng_sum")) TRUE else FALSE
       ,post = if(config_to_use$variable_name %in% c("pctPosSent", "unem_i")) "%" else if(grepl("temp", config_to_use$variable_name)) intToUtf8(176) else ""
-      ,pre = if(config_to_use$variable_name %in% c("spend", "gas_i")) "$" else ""
+      ,pre = if(config_to_use$variable_name %in% c("spend", "gasprice")) "$" else ""
       ,width = "100%"
     )
   )
