@@ -9,7 +9,7 @@ mod_traffic_uc_ui <- function(id, controls){
   
 }
 
-mod_traffic_uc_srv <- function(id, controls) {
+mod_traffic_uc_srv <- function(id, controls, output_var) {
   moduleServer(
     id,
     function(input, output, session) {
@@ -30,7 +30,7 @@ mod_traffic_uc_srv <- function(id, controls) {
         var_names <- var_choices
 
         row_to_use <- df_final %>%
-          select(-rides_inbound, -county) %>%
+          select(-matches( output_var ), -county) %>%
           summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
 
         for(i in 1:length(var_choices)){

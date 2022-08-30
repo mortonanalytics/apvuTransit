@@ -4,12 +4,17 @@ shinyUI(
         ,collapsible = FALSE
         ,windowTitle = "AlphaVu | Ridership"
         ,tabPanel(
-            "Metrolink Rail Lines"
+            "Predicting Ridership"
             ,includeCSS("www/style.css")
             ,useShinyjs()
             ,tags$head(tags$script(type="text/javascript", src = "append_logo.js"))
-            ,mod_traffic_ui("traffic")
+            ,mod_traffic_ui("traffic", "rides_inbound")
             )
+        ,tabPanel(
+          "Predicting Customer Sentiment"
+          ## TODO: convert this to sentiment output variable name when ready
+          #,mod_traffic_ui("traffic", "sentiment")
+        )
         ,tabPanel(
             "Ridership Analysis"
             , mod_analysis_ui("analysis")

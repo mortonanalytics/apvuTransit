@@ -123,7 +123,7 @@ content <- function(d, p, c){
   return(html_text)
 }
 
-#### fit linear model ####
+#### fit rides_inbound model ####
 ## (step regression didn't produce reasonable estimates - see intercept in model e.g.)
 df_model <- df_final %>%
   filter(complete.cases(.)) 
@@ -134,3 +134,5 @@ models <- df_model %>%
   split(df_model$county) %>% 
   map(. %>% select(-county) ) %>%
   map(~ randomForest(rides_inbound ~ ., data = . ) )
+
+## TODO: add model for sentiment

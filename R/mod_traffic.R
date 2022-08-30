@@ -1,4 +1,4 @@
-mod_traffic_ui <- function(id){
+mod_traffic_ui <- function(id, output_var){
   ns <- NS(id)
   tagList(
     sidebarLayout(
@@ -42,19 +42,21 @@ mod_traffic_ui <- function(id){
     )
 }
 
-mod_traffic_srv <- function(id) {
+mod_traffic_srv <- function(id, output_var) {
   moduleServer(
     id,
     function(input, output, session) {
       
-      predictions <- mod_traffic_uc_srv("uc", 3)
+      predictions <- mod_traffic_uc_srv("uc", 3, output_var)
       
       output$total_rides <- renderText({
         req(predictions$pred())
 
-        temp <- sum(predictions$pred()$rides_inbound, na.rm = TRUE)
+        temp <- sum(predictions$pred()[[ output_var ]], na.rm = TRUE)
+        
+        prediction_label <- ifelse( output_var == "rides_inbound", "Total Rides", "Total Sentiment" )
 
-        final <- paste0("Total Rides: ", format(round(temp), big.mark = ",") )
+        final <- paste0(prediction_label, ": ", format(round(temp), big.mark = ",") )
 
         return(final)
       })
@@ -73,7 +75,7 @@ mod_traffic_srv <- function(id) {
         var_names <- var_choices
 
         row_to_use <- df_final %>%
-          select(-rides_inbound, -county) %>%
+          select(-matches( output_var ), -county) %>%
           summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
 
         for(i in 1:length(var_choices)){

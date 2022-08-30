@@ -3,7 +3,11 @@ mod_analysis_ui <- function(id){
   tagList(
     fluidRow(column(12,
           fluidRow(
-            column(3,selectInput( ns( "var_choice" ), "Pick an Input", choices = var_choices))
+            column(
+              3
+              ,selectInput( ns( "var_choice" ), "Pick an Input", choices = var_choices)
+              ,selectInput( ns("output_var"), "Pick an Output", choices = c("Rides", "Sentiment") )
+              )
             )
           ,tags$div(
             class = "card-av"
@@ -27,11 +31,20 @@ mod_analysis_srv <- function(id) {
         
         var_name <- input$var_choice
         
-        p <- ggplot(df_model , aes_string(x = var_name, y = "rides_inbound", color = "county")) +
+        ## TODO: make sure the references to sentiment output_var and dataset_to_use are correct
+        output_var <- ifelse( input$output_var == "Rides", "rides_inbound", "sentiment")
+        
+        dataset_to_use <- switch(
+          input$output_var
+          ,"Rides" = df_model
+          ,"Sentiment" = df_sentiment
+        )
+        
+        p <- ggplot(dataset_to_use , aes_string(x = var_name, y = "rides_inbound", color = "county")) +
           geom_point(size = 3) + 
           scale_color_viridis_d(alpha = 0.8) +
           geom_smooth(method = "lm", aes(color = county),formula = 'y ~ x') + 
-          ylab("Rides") +
+          ylab( input$output_var ) +
           xlab(names(var_choices[var_choices == var_name]))+
           scale_y_continuous(limits = c(0,3500), labels = function(y){format(y, big.mark = ",")}) +
           ggthemes::theme_economist_white()+
