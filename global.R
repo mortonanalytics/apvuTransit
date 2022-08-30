@@ -39,7 +39,7 @@ shps <- readOGR("shp/2019SCRRALines.shp", layer = "2019SCRRALines", GDAL1_intege
 
 #### data assets ###
 
-## TODO: add sentiment dataset as a unique data set for now
+## TODO: add sentiment dataset as a unique data set for now, combine with df_agg, see if we can combine on-time performance (OTP)
 df_rides <- read.csv("data/df_rides.csv", stringsAsFactors = FALSE)
 df_agg <- read.csv("data/df_aggregates.csv", stringsAsFactors = FALSE)
 route_names <- read.csv("data/df_route_names.csv", stringsAsFactors = FALSE)
