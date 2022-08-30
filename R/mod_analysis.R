@@ -40,7 +40,7 @@ mod_analysis_srv <- function(id) {
           ,"Sentiment" = df_sentiment
         )
         
-        p <- ggplot(dataset_to_use , aes_string(x = var_name, y = "rides_inbound", color = "county")) +
+        p <- ggplot(dataset_to_use , aes_string(x = var_name, y = output_var, color = "county")) +
           geom_point(size = 3) + 
           scale_color_viridis_d(alpha = 0.8) +
           geom_smooth(method = "lm", aes(color = county),formula = 'y ~ x') + 
