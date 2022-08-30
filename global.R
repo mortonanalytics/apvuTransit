@@ -38,6 +38,8 @@ names(var_choices) <- ui_vars$variable_desc
 shps <- readOGR("shp/2019SCRRALines.shp", layer = "2019SCRRALines", GDAL1_integer64_policy = TRUE)
 
 #### data assets ###
+
+## TODO: add sentiment dataset as a unique data set for now
 df_rides <- read.csv("data/df_rides.csv", stringsAsFactors = FALSE)
 df_agg <- read.csv("data/df_aggregates.csv", stringsAsFactors = FALSE)
 route_names <- read.csv("data/df_route_names.csv", stringsAsFactors = FALSE)
