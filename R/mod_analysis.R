@@ -32,13 +32,14 @@ mod_analysis_srv <- function(id) {
         var_name <- input$var_choice
         
         ## TODO: make sure the references to sentiment output_var and dataset_to_use are correct
-        output_var <- ifelse( input$output_var == "Rides", "rides_inbound", "sentiment")
-        
+        output_var <- ifelse( input$output_var == "Rides", "rides_inbound", "value")
+        message(output_var)
         dataset_to_use <- switch(
           input$output_var
           ,"Rides" = df_model
-          ,"Sentiment" = df_sentiment
+          ,"Sentiment" = df_sent_model
         )
+        message(str(dataset_to_use))
         
         p <- ggplot(dataset_to_use , aes_string(x = var_name, y = output_var, color = "county")) +
           geom_point(size = 3) + 

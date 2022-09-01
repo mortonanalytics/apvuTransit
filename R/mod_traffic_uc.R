@@ -13,7 +13,7 @@ mod_traffic_uc_srv <- function(id, controls, output_var) {
   moduleServer(
     id,
     function(input, output, session) {
-      
+      message(output_var)
       
       observeEvent(input$reset_inputs,{
         

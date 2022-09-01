@@ -51,12 +51,18 @@ mod_traffic_srv <- function(id, output_var) {
       
       output$total_rides <- renderText({
         req(predictions$pred())
-
+        message(str(output_var))
         temp <- sum(predictions$pred()[[ output_var ]], na.rm = TRUE)
-        
+        if (output_var == "value"){
+          temp <-format(round(temp,-2), nsmall = 2)
+        }
+        else{
+          temp <-  format(round(temp))
+        }
+        message(temp)
         prediction_label <- ifelse( output_var == "rides_inbound", "Total Rides", "Total Sentiment" )
 
-        final <- paste0(prediction_label, ": ", format(round(temp), big.mark = ",") )
+        final <- paste0(prediction_label, ": ", temp, big.mark = ",")
 
         return(final)
       })

@@ -23,7 +23,7 @@ library(randomForest)
 library(viridis)
 
 source("R/util_prepare_data.R")
-
+source('R/util_prep_sentiment.R')
 #### config table ####
 config <- read_csv("data/config.csv", col_types = "cccccc") %>%
   filter(variable_name != 'weekend_d')
@@ -43,8 +43,11 @@ shps <- readOGR("shp/2019SCRRALines.shp", layer = "2019SCRRALines", GDAL1_intege
 df_rides <- read.csv("data/df_rides.csv", stringsAsFactors = FALSE)
 df_agg <- read.csv("data/df_aggregates.csv", stringsAsFactors = FALSE)
 route_names <- read.csv("data/df_route_names.csv", stringsAsFactors = FALSE)
-
+df_sentiment <- read.csv("data/avg_sentiment.csv", stringsAsFactors = FALSE)
 df_to_use <- util_prepare_data(df_rides, df_agg, route_names)
+df_sent_use <- util_prep_sentiment(df_rides,df_agg,df_sentiment,route_names)
+
+
 
 ## repeated orange county gets duplicated when mapped to route
 crswlk <- c("Antelope Valley" = "Los Angeles"
@@ -80,6 +83,15 @@ df_final <- df_to_use %>%
     ,county
     ,any_of(config$variable_name)
     )
+
+df_final_sent <- df_sent_use %>% 
+  left_join( df_crswlk %>% select(-county_2), by = c("route" = "abbrev") ) %>%
+  filter(weekend_d == 0, as.Date(date, "%Y-%m-%d") > "2021-01-01", rides_inbound > 0) %>%
+  select(
+    value
+    ,county
+    ,any_of(config$variable_name)
+  )
 
 #### color palette ####
 color_domain <- c(0.65,-0.65)
@@ -138,3 +150,13 @@ models <- df_model %>%
   map(~ randomForest(rides_inbound ~ ., data = . ) )
 
 ## TODO: add model for sentiment
+
+df_sent_model <- df_final_sent %>% 
+  filter(complete.cases(.))
+
+options(set.seed = 12345, scipen = 99)
+sent_mod <- df_sent_model %>%
+  split(df_sent_model$county) %>% 
+  map(. %>% select(-county) ) %>%
+  map(~ randomForest(value ~ ., data = . ) )
+

@@ -1,4 +1,4 @@
-date,total_customers,91PV_line,IEOC_line,AV_line,VC _line,RV_line,SB_line,OC_line
+date,total_customers,la,ie,av,vc,rv,sb,oc
 8/1/2021,-0.4,,,,,,,
 8/2/2021,-0.225,,-0.125,,,,,-0.1
 8/3/2021,-0.125,,,,,,,0

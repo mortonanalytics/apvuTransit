@@ -2,7 +2,7 @@ shinyServer(function(input, output, session) {
   mod_traffic_srv("traffic", "rides_inbound")
   
   ## TODO: convert this to sentiment output variable name when ready
-  #mod_traffic_srv("traffic", "sentiment")
+  mod_traffic_srv("sentiment", "value")
   
   mod_analysis_srv("analysis")
   

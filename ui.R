@@ -13,7 +13,7 @@ shinyUI(
         ,tabPanel(
           "Predicting Customer Sentiment"
           ## TODO: convert this to sentiment output variable name when ready
-          #,mod_traffic_ui("traffic", "sentiment")
+          ,mod_traffic_ui("sentiment", "value")
         )
         ,tabPanel(
             "Ridership Analysis"
