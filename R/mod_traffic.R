@@ -48,6 +48,12 @@ mod_traffic_srv <- function(id, output_var) {
     function(input, output, session) {
       
       predictions <- mod_traffic_uc_srv("uc", 3, output_var)
+      message(output_var)
+      using_df <- switch(
+        output_var
+        ,"Rides" = df_final
+        ,"Sentiment" = df_final_sent
+      )
       
       output$total_rides <- renderText({
         req(predictions$pred())
@@ -80,7 +86,7 @@ mod_traffic_srv <- function(id, output_var) {
 
         var_names <- var_choices
 
-        row_to_use <- df_final %>%
+        row_to_use <- using_df %>%
           select(-matches( output_var ), -county) %>%
           summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
 
