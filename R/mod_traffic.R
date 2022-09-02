@@ -49,11 +49,7 @@ mod_traffic_srv <- function(id, output_var) {
       
       predictions <- mod_traffic_uc_srv("uc", 3, output_var)
       message(output_var)
-      using_df <- switch(
-        output_var
-        ,"Rides" = df_final
-        ,"Sentiment" = df_final_sent
-      )
+    
       
       output$total_rides <- renderText({
         req(predictions$pred())
@@ -85,8 +81,13 @@ mod_traffic_srv <- function(id, output_var) {
         req(input[[paste0("uc-slider_", var_choices[1], collapse = "")]])
 
         var_names <- var_choices
+        use_df <- switch(
+          output_var
+          ,"rides_inbound" = df_final
+          ,"value" = df_final_sent
+        )
 
-        row_to_use <- using_df %>%
+        row_to_use <- use_df %>%
           select(-matches( output_var ), -county) %>%
           summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
 
@@ -118,11 +119,22 @@ mod_traffic_srv <- function(id, output_var) {
         }
         
         predicted_cases <- map_df(shps@data$Route, function(d){
-          if(d %in% c("LAUS")) return(data.frame(county = d, Route = d))
-          
+          exclusions <- switch(
+            output_var
+            , "rides_inbound" = c("LAUS")
+            , "value" = c("LAUS","Ventura County")
+          )
+          if(d %in% exclusions) return(data.frame(county = d, Route = d))
+          model_use <- switch(
+            output_var,
+            "rides_inbound" = models
+            ,"value" = sent_mod
+          )
+          message("Mod_Traffic")
+          message(length(model_use))
           county_name <- crswlk[names(crswlk) == d]
           
-          predictions_kept  <- predict(models[[county_name]], row_to_use, predict.all = TRUE)
+          predictions_kept  <- predict(model_use[[county_name]], row_to_use, predict.all = TRUE)
           
           temp <- row_to_use %>%
             mutate(
@@ -158,7 +170,7 @@ mod_traffic_srv <- function(id, output_var) {
           addPolylines(
             color = ~pal(diff)
             ,opacity = 0.8
-            ,popup = ~content(Route, rides_inbound, diff)
+            ,popup = ~content(Route, rides_inbound, diff, output_var)
             ,highlightOptions = highlightOptions(weight = 10,
                                                  bringToFront = TRUE)
           ) %>%
@@ -209,7 +221,7 @@ mod_traffic_srv <- function(id, output_var) {
             leaflet::addPolylines(
               color = ~pal(diff)
               ,opacity = 0.8
-              ,popup = ~content(Route, rides_inbound, diff)
+              ,popup = ~content(Route, rides_inbound, diff, output_var)
               ,highlightOptions = highlightOptions(weight = 10,
                                                    bringToFront = TRUE)
             )

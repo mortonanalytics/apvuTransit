@@ -122,15 +122,24 @@ app_legend <-  function(map){
 }
 
 #### map pop up content ####
-content <- function(d, p, c){
+content <- function(d, p, c, output_var){
+  printed_value <- switch(
+    output_var
+    ,"rides_inbound" = format(round(p), big.mark = ",")
+    , "value" = format(round(p, -2), big.mark = ",")
+  )
   
-  rides <- format(round(p), big.mark = ",")
+  printed_label <- switch(
+    output_var
+    ,"rides_inbound" = "Rides"
+    , "value" = "Avg Sentiment"
+  )
   
   diff <- paste(round(100 * c, digits = 1),"%", sep = "")
   
   html_text <- glue('
                     <b>{d}</b>
-                    <p class="popup"> Rides: {rides} </p>
+                    <p class="popup"> {printed_label}: {printed_value} </p>
                     <p> Difference from the Average: {diff} </p>
                     ')
   
@@ -158,5 +167,55 @@ options(set.seed = 12345, scipen = 99)
 sent_mod <- df_sent_model %>%
   split(df_sent_model$county) %>% 
   map(. %>% select(-county) ) %>%
-  map(~ randomForest(value ~ ., data = . ) )
+  map(~  randomForest(value ~ ., data = . ) ) 
 
+#### Model Exploration ####
+# make test df with filter, add preds
+
+#I understand this is messy, and could have been done just on the df_sent_model.
+# I was going in a different direction, and then pivoted to violin plots instead
+# of bar charts.
+
+riverside_df <- df_sent_model %>% filter(county == "Riverside")
+riverside_df$predictions  <- predict(sent_mod[["Riverside"]], df_sent_model%>% filter(county=="Riverside")) 
+riverside_df$diff <- riverside_df$predictions - riverside_df$value
+riv_avg_diff <- mean(riverside_df$diff)
+
+la_df <- df_sent_model %>% filter(county == "Los Angeles")
+la_df$predictions <- predict(sent_mod[["Los Angeles"]], df_sent_model%>% filter(county=="Los Angeles"))
+la_df$diff <- la_df$predictions - la_df$value
+la_avg_diff <- mean(la_df$diff)
+
+ie_df <- df_sent_model %>% filter(county == "Inland Empire")
+ie_df$predictions <- predict(sent_mod[["Inland Empire"]], df_sent_model%>% filter(county=="Inland Empire"))
+ie_df$diff <- ie_df$predictions - ie_df$value
+ie_avg_diff <- mean(ie_df$diff)
+
+orange_df <- df_sent_model %>% filter(county == "Orange")
+orange_df$predictions <- predict(sent_mod[["Orange"]], df_sent_model%>% filter(county=="Orange"))
+orange_df$diff <- orange_df$predictions - orange_df$value
+orange_avg_diff <- mean(orange_df$diff)
+
+san_df <- df_sent_model %>% filter(county == "San Bernardino")
+san_df$predictions <- predict(sent_mod[["San Bernardino"]], df_sent_model%>% filter(county=="San Bernardino"))
+san_df$diff <- san_df$predictions - san_df$value
+san_avg_diff <- mean(san_df$diff)
+
+preds_df<- bind_rows(san_df, orange_df, ie_df, la_df, riverside_df)
+preds_df_diff<- mean(preds_df$diff) 
+
+diff_plot <- ggplot(preds_df, aes(y=diff, x=county)) + 
+                       geom_violin()+
+                      geom_boxplot(width=0.1)+
+                      ggtitle("Difference Between Actual and Predicted")
+preds_plot <- ggplot(preds_df, aes(y=predictions, x=county)) + 
+                     geom_violin()+
+                     geom_boxplot(width=0.1)+
+                     ggtitle("Predicted Sentiment Scores")
+actual_plot <- ggplot(preds_df, aes(y=value, x=county), fill = county) + 
+                      geom_violin()+ 
+                      geom_boxplot(width=0.1)+
+                      ggtitle("Actual Sentiment Scores")
+preds_plot
+diff_plot
+actual_plot 

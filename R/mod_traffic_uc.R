@@ -13,11 +13,11 @@ mod_traffic_uc_srv <- function(id, controls, output_var) {
   moduleServer(
     id,
     function(input, output, session) {
-      using_df <- switch(
-        output_var
-        ,"Rides" = df_final
-        ,"Sentiment" = df_final_sent
-      )
+      # using_df <- switch(
+      #   output_var
+      #   ,"Rides" = df_final
+      #   ,"Sentiment" = df_final_sent
+      # )
       observeEvent(input$reset_inputs,{
         
         for(i in 1:length(var_choices)){
@@ -31,8 +31,14 @@ mod_traffic_uc_srv <- function(id, controls, output_var) {
       predictions <- reactive({
         
         var_names <- var_choices
-
-        row_to_use <- using_df %>%
+        use_df <- switch(
+          output_var
+          ,"rides_inbound" = df_final
+          ,"value" = df_final_sent
+        ) 
+        message(str(use_df))
+        message(output_var)
+        row_to_use <-use_df %>%
           select(-matches( output_var ), -county) %>%
           summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
 
@@ -65,11 +71,23 @@ mod_traffic_uc_srv <- function(id, controls, output_var) {
         
         
         predicted_cases <- map_df(shps@data$Route, function(d){
-          if(d %in% c("LAUS")) return(data.frame(county = d, Route = d))
-          
+          message(d)
+           exclusions <- switch(
+            output_var
+            , "rides_inbound" = c("LAUS")
+            , "value" = c("LAUS","Ventura County")
+          )
+          if(d %in% exclusions) return(data.frame(county = d, Route = d))
+          model_use <- switch(
+            output_var,
+            "rides_inbound" = models
+            ,"value" = sent_mod
+          )
+          message("Mod_Traffic_UC")
+          message(length(model_use))
           county_name <- crswlk[names(crswlk) == d]
           
-          predictions_kept  <- predict(models[[county_name]], row_to_use, predict.all = TRUE)
+          predictions_kept  <- predict(model_use[[county_name]], row_to_use, predict.all = TRUE)
           
           temp <- row_to_use %>%
             mutate(
