@@ -1,4 +1,4 @@
-mod_traffic_ui <- function(id){
+mod_traffic_ui <- function(id, output_var){
   ns <- NS(id)
   tagList(
     sidebarLayout(
@@ -42,19 +42,29 @@ mod_traffic_ui <- function(id){
     )
 }
 
-mod_traffic_srv <- function(id) {
+mod_traffic_srv <- function(id, output_var) {
   moduleServer(
     id,
     function(input, output, session) {
       
-      predictions <- mod_traffic_uc_srv("uc", 3)
+      predictions <- mod_traffic_uc_srv("uc", 3, output_var)
+      message(output_var)
+    
       
       output$total_rides <- renderText({
         req(predictions$pred())
+        message(str(output_var))
+        temp <- sum(predictions$pred()[[ output_var ]], na.rm = TRUE)
+        if (output_var == "value"){
+          temp <-format(round(temp,-2), nsmall = 2)
+        }
+        else{
+          temp <-  format(round(temp))
+        }
+        message(temp)
+        prediction_label <- ifelse( output_var == "rides_inbound", "Total Rides", "Total Sentiment" )
 
-        temp <- sum(predictions$pred()$rides_inbound, na.rm = TRUE)
-
-        final <- paste0("Total Rides: ", format(round(temp), big.mark = ",") )
+        final <- paste0(prediction_label, ": ", temp, big.mark = ",")
 
         return(final)
       })
@@ -71,9 +81,14 @@ mod_traffic_srv <- function(id) {
         req(input[[paste0("uc-slider_", var_choices[1], collapse = "")]])
 
         var_names <- var_choices
+        use_df <- switch(
+          output_var
+          ,"rides_inbound" = df_final
+          ,"value" = df_final_sent
+        )
 
-        row_to_use <- df_final %>%
-          select(-rides_inbound, -county) %>%
+        row_to_use <- use_df %>%
+          select(-matches( output_var ), -county) %>%
           summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
 
         for(i in 1:length(var_choices)){
@@ -104,11 +119,22 @@ mod_traffic_srv <- function(id) {
         }
         
         predicted_cases <- map_df(shps@data$Route, function(d){
-          if(d %in% c("LAUS")) return(data.frame(county = d, Route = d))
-          
+          exclusions <- switch(
+            output_var
+            , "rides_inbound" = c("LAUS")
+            , "value" = c("LAUS","Ventura County")
+          )
+          if(d %in% exclusions) return(data.frame(county = d, Route = d))
+          model_use <- switch(
+            output_var,
+            "rides_inbound" = models
+            ,"value" = sent_mod
+          )
+          message("Mod_Traffic")
+          message(length(model_use))
           county_name <- crswlk[names(crswlk) == d]
           
-          predictions_kept  <- predict(models[[county_name]], row_to_use, predict.all = TRUE)
+          predictions_kept  <- predict(model_use[[county_name]], row_to_use, predict.all = TRUE)
           
           temp <- row_to_use %>%
             mutate(
@@ -144,7 +170,7 @@ mod_traffic_srv <- function(id) {
           addPolylines(
             color = ~pal(diff)
             ,opacity = 0.8
-            ,popup = ~content(Route, rides_inbound, diff)
+            ,popup = ~content(Route, rides_inbound, diff, output_var)
             ,highlightOptions = highlightOptions(weight = 10,
                                                  bringToFront = TRUE)
           ) %>%
@@ -195,7 +221,7 @@ mod_traffic_srv <- function(id) {
             leaflet::addPolylines(
               color = ~pal(diff)
               ,opacity = 0.8
-              ,popup = ~content(Route, rides_inbound, diff)
+              ,popup = ~content(Route, rides_inbound, diff, output_var)
               ,highlightOptions = highlightOptions(weight = 10,
                                                    bringToFront = TRUE)
             )
