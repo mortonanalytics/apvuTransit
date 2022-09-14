@@ -128,7 +128,7 @@ content <- function(d, p, c, output_var){
   printed_value <- switch(
     output_var
     ,"rides_inbound" = format(round(p), big.mark = ",")
-    , "value" = format(round(p, -2), big.mark = ",")
+    , "value" = format(round(p, 2), big.mark = ",")
   )
   
   printed_label <- switch(
@@ -137,7 +137,7 @@ content <- function(d, p, c, output_var){
     , "value" = "Avg Sentiment"
   )
   
-  diff <- paste(round(100 * c, digits = 1),"%", sep = "")
+  diff <- paste(round(100 * c, 2),"%", sep = "")
   
   html_text <- glue('
                     <b>{d}</b>
@@ -185,74 +185,74 @@ options(set.seed = 12345, scipen = 99)
 # I was going in a different direction, and then pivoted to violin plots instead
 # of bar charts.
 
-riverside_df <- df_sent_model %>% filter(county == "Riverside")
-riverside_df$predictions  <- predict(sent_mod[["Riverside"]], df_sent_model%>% filter(county=="Riverside")) 
-riverside_df$diff <- riverside_df$predictions - riverside_df$value
-riv_avg_diff <- mean(riverside_df$diff)
-
-la_df <- df_sent_model %>% filter(county == "Los Angeles")
-la_df$predictions <- predict(sent_mod[["Los Angeles"]], df_sent_model%>% filter(county=="Los Angeles"))
-la_df$diff <- la_df$predictions - la_df$value
-la_avg_diff <- mean(la_df$diff)
-
-ie_df <- df_sent_model %>% filter(county == "Inland Empire")
-ie_df$predictions <- predict(sent_mod[["Inland Empire"]], df_sent_model%>% filter(county=="Inland Empire"))
-ie_df$diff <- ie_df$predictions - ie_df$value
-ie_avg_diff <- mean(ie_df$diff)
-
-orange_df <- df_sent_model %>% filter(county == "Orange")
-orange_df$predictions <- predict(sent_mod[["Orange"]], df_sent_model%>% filter(county=="Orange"))
-orange_df$diff <- orange_df$predictions - orange_df$value
-orange_avg_diff <- mean(orange_df$diff)
-
-san_df <- df_sent_model %>% filter(county == "San Bernardino")
-san_df$predictions <- predict(sent_mod[["San Bernardino"]], df_sent_model%>% filter(county=="San Bernardino"))
-san_df$diff <- san_df$predictions - san_df$value
-san_avg_diff <- mean(san_df$diff)
-
-preds_df<- bind_rows(san_df, orange_df, ie_df, la_df, riverside_df)
-preds_df_diff<- mean(preds_df$diff) 
-
-
-diff_plot <- ggplot(preds_df, aes(y=diff, x=county, color = county)) + 
-                       geom_violin()+
-                      geom_boxplot(width=0.1)+
-                      ggtitle("Difference Between Actual and Predicted")
-preds_plot <- ggplot(preds_df, aes(y=predictions, x=county, color = county)) + 
-                     geom_violin()+
-                     geom_boxplot(width=0.1)+
-                     ggtitle("Predicted Sentiment Scores")
-actual_plot <- ggplot(preds_df, aes(y=value, x=county, color = county), fill = county) + 
-                      geom_violin()+ 
-                      geom_boxplot(width=0.1)+
-                      ggtitle("Actual Sentiment Scores")
-preds_plot
-diff_plot
-actual_plot 
-
- #### New_Mod Exploration ####
-new_mod_df <- df_sent_model
-new_mod_df$predictions  <- predict(new_mod, new_mod_df) 
-new_mod_df$diff <- new_mod_df$predictions - new_mod_df$value
-new_mod_avg_diff <- mean(new_mod_df$diff)
-
-new_mod_plot <- ggplot(new_mod_df, aes(y=value, x =county, color = county), fill = county)+
-                geom_violin()+
-                geom_boxplot(width = 0.1)+
-                  ggtitle("New Actual Sentiment Score")
-new_mod_diff_plot <-ggplot(new_mod_df, aes(y=diff, x =county, color = county), fill = county)+
-  geom_violin()+
-  geom_boxplot(width = 0.1)+
-  ggtitle("New Difference between Actual and Predicted")
-
-new_mod_pred_plot <-ggplot(new_mod_df, aes(y=predictions, x =county, color = county), fill = county)+
-  geom_violin()+
-  geom_boxplot(width = 0.1)+
-  ggtitle("New Predicted Sentiment Score")
-
-new_mod_plot
-new_mod_diff_plot
-new_mod_pred_plot
+# riverside_df <- df_sent_model %>% filter(county == "Riverside")
+# riverside_df$predictions  <- predict(sent_mod[["Riverside"]], df_sent_model%>% filter(county=="Riverside")) 
+# riverside_df$diff <- riverside_df$predictions - riverside_df$value
+# riv_avg_diff <- mean(riverside_df$diff)
+# 
+# la_df <- df_sent_model %>% filter(county == "Los Angeles")
+# la_df$predictions <- predict(sent_mod[["Los Angeles"]], df_sent_model%>% filter(county=="Los Angeles"))
+# la_df$diff <- la_df$predictions - la_df$value
+# la_avg_diff <- mean(la_df$diff)
+# 
+# ie_df <- df_sent_model %>% filter(county == "Inland Empire")
+# ie_df$predictions <- predict(sent_mod[["Inland Empire"]], df_sent_model%>% filter(county=="Inland Empire"))
+# ie_df$diff <- ie_df$predictions - ie_df$value
+# ie_avg_diff <- mean(ie_df$diff)
+# 
+# orange_df <- df_sent_model %>% filter(county == "Orange")
+# orange_df$predictions <- predict(sent_mod[["Orange"]], df_sent_model%>% filter(county=="Orange"))
+# orange_df$diff <- orange_df$predictions - orange_df$value
+# orange_avg_diff <- mean(orange_df$diff)
+# 
+# san_df <- df_sent_model %>% filter(county == "San Bernardino")
+# san_df$predictions <- predict(sent_mod[["San Bernardino"]], df_sent_model%>% filter(county=="San Bernardino"))
+# san_df$diff <- san_df$predictions - san_df$value
+# san_avg_diff <- mean(san_df$diff)
+# 
+# preds_df<- bind_rows(san_df, orange_df, ie_df, la_df, riverside_df)
+# preds_df_diff<- mean(preds_df$diff) 
+# 
+# 
+# diff_plot <- ggplot(preds_df, aes(y=diff, x=county, color = county)) + 
+#                        geom_violin()+
+#                       geom_boxplot(width=0.1)+
+#                       ggtitle("Difference Between Actual and Predicted")
+# preds_plot <- ggplot(preds_df, aes(y=predictions, x=county, color = county)) + 
+#                      geom_violin()+
+#                      geom_boxplot(width=0.1)+
+#                      ggtitle("Predicted Sentiment Scores")
+# actual_plot <- ggplot(preds_df, aes(y=value, x=county, color = county), fill = county) + 
+#                       geom_violin()+ 
+#                       geom_boxplot(width=0.1)+
+#                       ggtitle("Actual Sentiment Scores")
+# preds_plot
+# diff_plot
+# actual_plot 
+# 
+#  #### New_Mod Exploration ####
+# new_mod_df <- df_sent_model
+# new_mod_df$predictions  <- predict(new_mod, new_mod_df) 
+# new_mod_df$diff <- new_mod_df$predictions - new_mod_df$value
+# new_mod_avg_diff <- mean(new_mod_df$diff)
+# 
+# new_mod_plot <- ggplot(new_mod_df, aes(y=value, x =county, color = county), fill = county)+
+#                 geom_violin()+
+#                 geom_boxplot(width = 0.1)+
+#                   ggtitle("New Actual Sentiment Score")
+# new_mod_diff_plot <-ggplot(new_mod_df, aes(y=diff, x =county, color = county), fill = county)+
+#   geom_violin()+
+#   geom_boxplot(width = 0.1)+
+#   ggtitle("New Difference between Actual and Predicted")
+# 
+# new_mod_pred_plot <-ggplot(new_mod_df, aes(y=predictions, x =county, color = county), fill = county)+
+#   geom_violin()+
+#   geom_boxplot(width = 0.1)+
+#   ggtitle("New Predicted Sentiment Score")
+# 
+# new_mod_plot
+# new_mod_diff_plot
+# new_mod_pred_plot
 
 #### Dummy Data ####
 

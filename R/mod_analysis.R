@@ -33,13 +33,25 @@ mod_analysis_srv <- function(id) {
         
         ## TODO: make sure the references to sentiment output_var and dataset_to_use are correct
         output_var <- ifelse( input$output_var == "Rides", "rides_inbound", "value")
-        message(output_var)
+       
         dataset_to_use <- switch(
           input$output_var
           ,"Rides" = df_model
           ,"Sentiment" = df_sent_model
         )
-        message(str(dataset_to_use))
+        
+        min_y <- switch(
+          input$output_var
+          ,"Rides" = 0
+          ,"Sentiment" = -1
+        )
+        
+        max_y <- switch(
+          input$output_var
+          ,"Rides" = 3500
+          ,"Sentiment" = 1
+        )
+        
         
         p <- ggplot(dataset_to_use , aes_string(x = var_name, y = output_var, color = "county")) +
           geom_point(size = 3) + 
@@ -47,7 +59,7 @@ mod_analysis_srv <- function(id) {
           geom_smooth(method = "lm", aes(color = county),formula = 'y ~ x') + 
           ylab( input$output_var ) +
           xlab(names(var_choices[var_choices == var_name]))+
-          scale_y_continuous(limits = c(0,3500), labels = function(y){format(y, big.mark = ",")}) +
+          scale_y_continuous(limits = c(min_y,max_y), labels = function(y){format(y, big.mark = ",")}) +
           ggthemes::theme_economist_white()+
           theme(
             legend.title=element_blank()

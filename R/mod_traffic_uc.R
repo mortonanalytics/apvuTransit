@@ -36,8 +36,7 @@ mod_traffic_uc_srv <- function(id, controls, output_var) {
           ,"rides_inbound" = df_final
           ,"value" = df_final_sent
         ) 
-        message(str(use_df))
-        message(output_var)
+       
         row_to_use <-use_df %>%
           select(-matches( output_var ), -county) %>%
           summarise(across(.fns = ~ mean(.x, na.rm = TRUE)))
@@ -71,7 +70,7 @@ mod_traffic_uc_srv <- function(id, controls, output_var) {
         
         
         predicted_cases <- map_df(shps@data$Route, function(d){
-          message(d)
+          
            exclusions <- switch(
             output_var
             , "rides_inbound" = c("LAUS")
@@ -83,8 +82,7 @@ mod_traffic_uc_srv <- function(id, controls, output_var) {
             "rides_inbound" = models
             ,"value" = sent_mod
           )
-          message("Mod_Traffic_UC")
-          message(length(model_use))
+          
           county_name <- crswlk[names(crswlk) == d]
           
           predictions_kept  <- predict(model_use[[county_name]], row_to_use, predict.all = TRUE)

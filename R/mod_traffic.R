@@ -48,23 +48,25 @@ mod_traffic_srv <- function(id, output_var) {
     function(input, output, session) {
       
       predictions <- mod_traffic_uc_srv("uc", 3, output_var)
-      message(output_var)
-    
       
       output$total_rides <- renderText({
         req(predictions$pred())
-        message(str(output_var))
-        temp <- sum(predictions$pred()[[ output_var ]], na.rm = TRUE)
+        
         if (output_var == "value"){
-          temp <-format(round(temp,-2), nsmall = 2)
+          message(str(
+            predictions$pred()
+          ))
+          temp <- mean(predictions$pred()[[ "rides_inbound" ]], na.rm = TRUE)
+          temp <- round(temp, 2)
         }
         else{
-          temp <-  format(round(temp))
+          temp <- sum(predictions$pred()[[ output_var ]], na.rm = TRUE)
+          temp <-  format(round(temp), big.mark = ",")
         }
-        message(temp)
-        prediction_label <- ifelse( output_var == "rides_inbound", "Total Rides", "Total Sentiment" )
+        
+        prediction_label <- ifelse( output_var == "rides_inbound", "Total Rides", "Average Sentiment" )
 
-        final <- paste0(prediction_label, ": ", temp, big.mark = ",")
+        final <- paste0(prediction_label, ": ", temp)
 
         return(final)
       })
@@ -130,8 +132,7 @@ mod_traffic_srv <- function(id, output_var) {
             "rides_inbound" = models
             ,"value" = sent_mod
           )
-          message("Mod_Traffic")
-          message(length(model_use))
+          
           county_name <- crswlk[names(crswlk) == d]
           
           predictions_kept  <- predict(model_use[[county_name]], row_to_use, predict.all = TRUE)
@@ -183,11 +184,23 @@ mod_traffic_srv <- function(id, output_var) {
         df <- initial_predictions()@data %>%
           filter(complete.cases(.))
         
+        min_x <- switch(
+          output_var
+          , "rides_inbound" = 0
+          , "value" = -1
+        )
+        
+        max_x <- switch(
+          output_var
+          , "rides_inbound" = 2000
+          , "value" = 1
+        )
+        
         ggplot(df, aes(color = county)) +
           geom_errorbarh(aes(xmin = rides_low, xmax = rides_high, y = county),height=.4,  size = 0.5) +
           geom_point(aes(x = rides_inbound, y = county),  size = 2) +
-          geom_text(aes( x = rides_high + 15, y = county, label = paste("Avg Rides:", round(rides_inbound) ) ) ) +
-          scale_x_continuous(limits = c(0,2000), labels = function(y){format(y, big.mark = ",")}) +
+          geom_text(aes( x = rides_high * 15, y = county, label = paste("Avg Rides:", round(rides_inbound) ) ) ) +
+          scale_x_continuous(limits = c(min_x,max_x), labels = function(y){format(y, big.mark = ",")}) +
           xlab("Rides") +
           ylab("")+
           ggthemes::theme_economist_white()+
@@ -233,11 +246,23 @@ mod_traffic_srv <- function(id, output_var) {
           df <- predictions$pred() %>%
             filter(complete.cases(.))
           
+          min_x <- switch(
+            output_var
+            , "rides_inbound" = 0
+            , "value" = -1
+          )
+          
+          max_x <- switch(
+            output_var
+            , "rides_inbound" = 2500
+            , "value" = 1
+          )
+          
           ggplot(df, aes(color = county)) +
             geom_errorbarh(aes(xmin = rides_low, xmax = rides_high, y = county),height=.4,  size = 0.5) +
             geom_point(aes(x = rides_inbound, y = county),  size = 2) +
             geom_text(aes( x = rides_high + 15, y = county, label = paste("Avg Estimate:", format(round(rides_inbound),big.mark = ",") ) ), hjust = "left", nudge_y = -0.1, size = 6 ) +
-            scale_x_continuous(limits = c(0,2500), labels = function(y){format(y, big.mark = ",")}) +
+            scale_x_continuous(limits = c(min_x,max_x), labels = function(y){format(y, big.mark = ",")}) +
             xlab("Rides") +
             ylab("") +
             labs(caption = "**Bars represent 95% Confidence Interval to the Avg Estimate") +
